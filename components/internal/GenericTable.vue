@@ -18,6 +18,7 @@ interface TableProps<T> {
   data: T[]
   columns: ColumnDef<T>[]
   loading?: boolean
+  selectMode?: boolean
 }
 
 const props = defineProps<TableProps<any>>() // ou <Backup>, etc.
@@ -89,7 +90,7 @@ const table = useVueTable({
       </table>
 
       <!-- Ex. Pagination -->
-      <div class="flex items-center justify-end space-x-2 py-4">
+      <div class="flex items-center justify-end space-x-2 py-4" v-if="selectMode">
         <div class="flex-1 text-sm text-muted-foreground">
           {{ table.getFilteredSelectedRowModel().rows.length }} /
           {{ table.getFilteredRowModel().rows.length }} sélectionné(s).

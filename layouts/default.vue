@@ -195,7 +195,8 @@ const data = {
           <Separator orientation="vertical" class="mr-2 h-4" />
         </div>
       </header>
-      <div class="flex flex-1 flex-col gap-4 p-4 pt-0">
+      <!-- class="flex flex-1 flex-col gap-4 p-4 pt-0" -->
+      <div >
           <NuxtPage />
       </div>
     </SidebarInset>

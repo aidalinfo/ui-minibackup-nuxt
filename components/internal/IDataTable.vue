@@ -6,6 +6,7 @@ import GenericTable from './GenericTable.vue'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Button } from '@/components/ui/button'
 import { ChevronDown, ArrowUpDown } from 'lucide-vue-next'
+import InteractiveHoverButton from '@/components/internal/InteractiveHoverButton.vue' // <-- Import
 
 interface Backup {
   name: string
@@ -20,29 +21,6 @@ const loading = ref(false)
 
 // 2. Colonnes
 const columns: ColumnDef<Backup>[] = [
-  {
-    id: 'select',
-    enableHiding: false,
-    enableSorting: false,
-    header: ({ table }) =>
-      h('div', { class: 'w-12 flex items-center justify-center' }, [
-        h(Checkbox, {
-          checked:
-            table.getIsAllPageRowsSelected() ||
-            (table.getIsSomePageRowsSelected() && 'indeterminate'),
-          'onUpdate:checked': val => table.toggleAllPageRowsSelected(!!val),
-          ariaLabel: 'Select all',
-        }),
-      ]),
-    cell: ({ row }) =>
-      h('div', { class: 'w-12 flex items-center justify-center' }, [
-        h(Checkbox, {
-          checked: row.getIsSelected(),
-          'onUpdate:checked': val => row.toggleSelected(!!val),
-          ariaLabel: 'Select row',
-        }),
-      ]),
-  },
   {
     accessorKey: 'name',
     header: 'Nom',
@@ -66,18 +44,17 @@ const columns: ColumnDef<Backup>[] = [
     cell: ({ getValue }) => getValue(),
   },
   {
-    id: 'actions',
-    enableHiding: false,
-    cell: ({ row }) => {
-      const backup = row.original
-      return h('div', [
-        h(Button, {
-          variant: 'outline',
-          onClick: () => doSomethingWithBackup(backup),
-        }, () => 'Action'),
-      ])
-    },
+  id: 'actions',
+  enableHiding: false,
+  cell: ({ row }) => {
+    const backup = row.original
+    return h(InteractiveHoverButton, {
+      class: 'w-32',           // Largeur si texte long, par ex.
+      text: 'Restaurer',       // Le texte à afficher
+      onClick: () => restoreBackup(backup) // Au clic, on déclenche la restauration
+    })
   },
+},
 ]
 
 // 3. Fetcher les données via ton plugin axios
@@ -101,11 +78,6 @@ async function loadData() {
   }
 }
 
-function restoreBackup(backup: Backup) {
-  console.log('Restaurer le backup', backup.name)
-  // Par exemple, $api.post('/restore/...')
-}
-
 onMounted(() => {
   loadData()
 })
@@ -113,8 +85,6 @@ onMounted(() => {
 
 <template>
   <div>
-    <h1 class="text-xl font-bold mb-4">Liste des backups</h1>
-
     <GenericTable
       :data="backups"
       :columns="columns"
