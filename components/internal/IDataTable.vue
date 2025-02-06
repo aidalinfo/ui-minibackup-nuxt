@@ -78,6 +78,12 @@ async function loadData() {
   }
 }
 
+const router = useRouter()
+
+async function restoreBackup(backup: Backup) {
+  router.push(`/restore/${backup.name}`)
+}
+
 onMounted(() => {
   loadData()
 })
