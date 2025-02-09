@@ -13,12 +13,11 @@ import {
 import { FlexRender } from '@tanstack/vue-table'
 
 // On déclare un type générique T pour la forme des données.
-// Si tu veux simplifier, tu peux mettre "any" à la place de T.
 interface TableProps<T> {
   data: T[]
   columns: ColumnDef<T>[]
   loading?: boolean
-  selectMode?: boolean
+  pagination?: boolean
 }
 
 const props = defineProps<TableProps<any>>() // ou <Backup>, etc.
@@ -90,10 +89,11 @@ const table = useVueTable({
       </table>
 
       <!-- Ex. Pagination -->
-      <div class="flex items-center justify-end space-x-2 py-4" v-if="selectMode">
+      <div class="flex items-center justify-end space-x-2 py-4" v-if="pagination">
         <div class="flex-1 text-sm text-muted-foreground">
-          {{ table.getFilteredSelectedRowModel().rows.length }} /
-          {{ table.getFilteredRowModel().rows.length }} sélectionné(s).
+          <!-- {{ table.getFilteredSelectedRowModel().rows.length }} / -->
+          <!-- {{ table.getFilteredRowModel().rows.length }} sélectionné(s). -->
+            {{ table.getFilteredRowModel().rows.length }} sauvegardes au total.
         </div>
         <Button
           variant="outline"

@@ -11,13 +11,19 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Stepper, StepperDescription, StepperItem, StepperSeparator, StepperTitle, StepperTrigger } from '@/components/ui/stepper'
-import { toast } from '@/components/ui/toast'
+import { useToast } from '@/components/ui/toast/use-toast'
 import { toTypedSchema } from '@vee-validate/zod'
 import { Check, Circle, Dot } from 'lucide-vue-next'
 import { h, ref } from 'vue'
 import * as z from 'zod'
+import { useNuxtApp } from '#app'
 
+// Accès à l'API via useNuxtApp
+const { $api } = useNuxtApp()
 
+// Récupération du paramètre "name" depuis l'URL
+const route = useRoute()
+const backupName = route.params.name as string
 
 const formSchema = [
   z.object({
@@ -25,9 +31,6 @@ const formSchema = [
   }),
   z.object({
     selectedBackup: z.string(),
-  }),
-  z.object({
-    favoriteDrink: z.union([z.literal('coffee'), z.literal('tea'), z.literal('soda')]),
   }),
 ]
 
@@ -45,21 +48,48 @@ const steps = [
   },
   {
     step: 3,
-    title: 'Your Favorite Drink',
-    description: 'Choose a drink',
+    title: 'Résumé',
+    description: 'Résumé de la restauration',
   },
 ]
 
-function onSubmit(values: any) {
+const apiPostRestore = async (values: any) => {
   toast({
-    title: 'You submitted the following values:',
-    description: h('pre', { class: 'mt-2 w-[340px] rounded-md bg-slate-950 p-4' }, h('code', { class: 'text-white' }, JSON.stringify(values, null, 2))),
+    title: 'Restauration en cours',
+    description: 'La restauration est en cours',
+  })
+  try {
+    const response = await $api.post(`/api/restore/${backupName}`, {
+      pathFile: values.selectedBackup,
+
+    })
+    console.log(response.data)
+  } catch (error) {
+    console.error(error)
+  }
+}
+
+const { toast } = useToast()
+
+function onSubmit(values: any) {
+  console.log(values.selectedBackup, "Valeurs de la soumission")
+  apiPostRestore(values).then(() => {
+    toast({
+      title: 'Restauration effectuée avec succès',
+      description: 'La restauration a été effectuée avec succès',
+    })
+  }).catch((error) => {
+    console.error(error)
+    toast({
+      title: 'Erreur lors de la restauration',
+      description: 'Une erreur est survenue lors de la restauration',
+      variant: 'destructive',
+    })
   })
 }
 </script>
 
 <template>
-    {{ formSchema }}
     <div>
       <Card class="relative overflow-hidden rounded-lg xl:col-span-2">
         <CardHeader class="flex flex-row items-center">
@@ -80,15 +110,14 @@ function onSubmit(values: any) {
         <CardContent>
   <Form
     v-slot="{ meta, values, validate }"
-    as="" keep-values :validation-schema="toTypedSchema(formSchema[stepIndex - 1])"
+    as="" keep-values :validation-schema="toTypedSchema(formSchema[stepIndex - 2])"
   >
     <Stepper v-slot="{ isNextDisabled, isPrevDisabled, nextStep, prevStep }" v-model="stepIndex" class="block w-full">
       <form
         @submit="(e) => {
           e.preventDefault()
           validate()
-
-          if (stepIndex === steps.length && meta.valid) {
+          if (stepIndex === steps.length) {
             onSubmit(values)
           }
         }"
@@ -162,8 +191,7 @@ function onSubmit(values: any) {
           <template v-if="stepIndex === 2">
             <FormField v-slot="{ componentField }" name="selectedBackup">
             <FormItem>
-                <!-- On transmet toutes les props du slot grâce à v-bind -->
-                <BackupsToBackup v-bind="componentField" v-model:selectedBackup="componentField.modelValue" />
+                <ListBackups v-bind="componentField" />
             </FormItem>
             </FormField>
 
@@ -171,36 +199,38 @@ function onSubmit(values: any) {
           </template>
 
           <template v-if="stepIndex === 3">
-            <FormField v-slot="{ componentField }" name="favoriteDrink">
-              <FormItem>
-                <FormLabel>Drink</FormLabel>
-
-                <Select v-bind="componentField">
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select a drink" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectGroup>
-                      <SelectItem value="coffee">
-                        Coffe
-                      </SelectItem>
-                      <SelectItem value="tea">
-                        Tea
-                      </SelectItem>
-                      <SelectItem value="soda">
-                        Soda
-                      </SelectItem>
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            </FormField>
-          </template>
+            <!-- <div class="z-10 flex flex-col gap-2 min-h-64 items-center justify-center">
+              <h3 class="text-lg font-semibold">Résumé de la restauration</h3>
+              <p><strong>Destination :</strong> {{ values.selectDestination || 'Non spécifié' }}</p>
+              <p><strong>Sauvegarde sélectionnée :</strong> {{ values.selectedBackup || 'Non spécifié' }}</p>
+            </div>
+          </template> -->
+          <div class="grid gap-2 grid-cols-1 md:grid-cols-2">
+          <Card>
+            <CardHeader> 
+              <CardTitle>Destination</CardTitle>
+              <CardDescription>
+                Système qui sera restauré à partir de la sauvegarde
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              Lieu : {{ values.selectDestination }}
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle>Sauvegarde sélectionnée </CardTitle>
+              <CardDescription>
+                Sauvegarde sélectionnée qui sera utilisée pour la restauration
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              Nom : {{ values.selectedBackup }}
+            </CardContent>
+          </Card>
         </div>
-
+      </template>
+    </div> 
         <div class="flex items-center justify-between mt-4">
           <Button :disabled="isPrevDisabled" variant="outline" size="sm" @click="prevStep()">
             Back
@@ -212,7 +242,7 @@ function onSubmit(values: any) {
             <Button
               v-if="stepIndex === 3" size="sm" type="submit"
             >
-              Submit
+              Restaurer
             </Button>
           </div>
         </div>
