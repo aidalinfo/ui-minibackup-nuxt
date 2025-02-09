@@ -58,12 +58,12 @@ const data = {
       isActive: true,
       items: [
         {
-          title: 'Global',
-          url: '/login',
+          title: 'Tableau de bord',
+          url: '/',
         },
         {
-          title: 'Détails',
-          url: '#',
+          title: 'Liste des sauvegardes',
+          url: '/backups',
         },
         {
           title: 'Paramètres',

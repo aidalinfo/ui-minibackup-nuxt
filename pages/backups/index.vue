@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import type { ColumnDef } from '@tanstack/vue-table'
-import { Checkbox } from '@/components/ui/checkbox'
-import { Button } from '@/components/ui/button'
 import { ChevronDown, ArrowUpDown } from 'lucide-vue-next'
-import InteractiveHoverButton from '@/components/internal/InteractiveHoverButton.vue'
+import InteractiveHoverButton from '@/components/internal/InteractiveHoverButton.vue' 
+import type { ColumnDef } from '@tanstack/vue-table'
+import { Button } from '@/components/ui/button'
+
 const router = useRouter()
 interface Backup {
   name: string
@@ -13,8 +13,8 @@ interface Backup {
 }
 
 
-async function restoreBackup(backup: Backup) {
-  router.push(`/restore/${backup.name}`)
+async function details(backup: Backup) {
+  router.push(`/backups/${backup.name}`)
 }
 const columns: ColumnDef<Backup>[] = [
   {
@@ -46,29 +46,17 @@ const columns: ColumnDef<Backup>[] = [
     const backup = row.original
     return h(InteractiveHoverButton, {
       class: 'w-32',           // Largeur si texte long, par ex.
-      text: 'Restaurer',       // Le texte à afficher
-      onClick: () => restoreBackup(backup) // Au clic, on déclenche la restauration
+      text: 'Détails',       // Le texte à afficher
+      onClick: () => details(backup) // Au clic, on déclenche la restauration
     })
   },
 },
 ]
 </script>
 <template>
-  <main class="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
-
-    <div class="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-3">
-      <ClientOnly>
-        <BlurReveal :delay="0.2" :duration="0.75" class="">
-          <h2 class="text-3xl font-bold tracking-tighter sm:text-5xl xl:text-6xl leading-none">
-            Tableau de bord 🚀 </h2>
-        </BlurReveal>
-      </ClientOnly>
-      <NextBackup/>
-
-      <RStorageEnable/>
-    </div>
-    <div class="grid gap-4 md:gap-8 lg:grid-cols-2 xl:grid-cols-3">
-      <Card class="relative overflow-hidden rounded-lg xl:col-span-2">
+      <div class="flex flex-1 flex-col gap-4 p-4">
+        <div class="min-h-[100vh] flex-1 rounded-xl  md:min-h-min">
+          <Card class="relative overflow-hidden rounded-lg xl:col-span-2">
         <CardHeader class="flex flex-row items-center">
           <div class="grid gap-2">
             <CardTitle>Sauvegardes</CardTitle>
@@ -76,18 +64,21 @@ const columns: ColumnDef<Backup>[] = [
               Résumé des sauvegardes actives.
             </CardDescription>
           </div>
+          <!-- <Button as-child size="sm" class="ml-auto gap-1">
+            <a href="#">
+              View All
+              <ArrowUpRight class="h-4 w-4" />
+            </a>
+          </Button> -->
         </CardHeader>
 
         <CardContent>
-          <IDataTable :columns="columns" :pagination="false"/>
+          <IDataTable :columns="columns" :pagination="true"/>
         </CardContent>
 
         <!-- Le composant BorderBeam appliqué en superposition -->
         <BorderBeam :size="250" :duration="12" :delay="0" :border-width="2" colorFrom="#ffaa40" colorTo="#9c40ff" />
       </Card>
-      <div>
-      <LastBackups />
-    </div>
-    </div>
-  </main>
+        </div>
+      </div>
 </template>

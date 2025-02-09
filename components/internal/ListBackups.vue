@@ -5,9 +5,11 @@ import { useNuxtApp } from '#app'
 import type { ColumnDef } from '@tanstack/vue-table'
 import { Checkbox } from '@/components/ui/checkbox'
 import { format } from 'date-fns'
-
+import { Button } from '@/components/ui/button'
+import { Loader2 } from 'lucide-vue-next'
+import InteractiveHoverButton from '@/components/internal/InteractiveHoverButton.vue'
 // **Ajout de la prop pour la liaison v-bind**
-const props = defineProps<{ modelValue: string }>()
+const props = defineProps<{ modelValue: string, download: boolean }>()
 
 // **Ajout de l'emit pour mettre à jour le v-model**
 const emit = defineEmits<{ (e: 'update:modelValue', value: string): void }>()
@@ -20,6 +22,7 @@ const backupName = route.params.name as string
 const filesListed = ref<any[]>([])
 const loading = ref(false)
 const selectedFile = ref<string | null>(props.modelValue)
+const downloadingFile = ref<string | null>(null) // Gère l'affichage du loader pour le téléchargement
 
 // Accès à l'API via useNuxtApp
 const { $api } = useNuxtApp()
@@ -30,14 +33,11 @@ async function listLastBackup() {
     loading.value = true
     const response = await $api.get(`/api/backups/${backupName}/files`)
     if (response.status === 200) {
-      console.log("Structure des fichiers renvoyée par l'API :", response.data)
-
       let files = response.data.files
 
       // Trier par date décroissante
       files.sort((a: any, b: any) => new Date(b.LastModified).getTime() - new Date(a.LastModified).getTime())
 
-      // Obtenir les trois derniers fichiers
       filesListed.value = files
     } else {
       console.error(`Erreur lors de la récupération des fichiers pour ${backupName}`)
@@ -58,23 +58,37 @@ watch(selectedFile, (newVal) => {
   emit('update:modelValue', newVal as string)
 })
 
-// Fonction pour extraire uniquement le nom du fichier
-const extractFilename = (key: string) => key.substring(key.lastIndexOf("/") + 1)
+// **Téléchargement avec gestion du loading**
+async function downloadDecryptedFile(fileName: string) {
+  try {
+    downloadingFile.value = fileName // Active le loader pour ce fichier
 
-// Fonction pour formater la date
-const formatDate = (dateString: string) => format(new Date(dateString), 'yyyy-MM-dd HH:mm:ss')
+    const response = await $api.get(`/api/download/${encodeURIComponent(fileName)}`, {
+      responseType: "blob"
+    });
 
-// Fonction pour formater la taille
-const formatSize = (size: number) => {
-  if (size >= 1024 * 1024) {
-    return `${(size / (1024 * 1024)).toFixed(2)} Mo`
-  } else if (size >= 1024) {
-    return `${(size / 1024).toFixed(2)} Ko`
+    const blob = response.data;
+    if (!(blob instanceof Blob)) {
+      throw new Error("La réponse n'est pas un Blob valide !");
+    }
+
+    const cleanFileName = fileName.endsWith(".enc") ? fileName.slice(0, -4) : fileName;
+
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = cleanFileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  } catch (error) {
+    console.error("Erreur lors du téléchargement :", error);
+  } finally {
+    downloadingFile.value = null // Désactive le loader
   }
-  return `${size} octets`
 }
 
-// Définition des colonnes
+// **Définition des colonnes**
 const columns: ColumnDef<any>[] = [
   {
     id: 'select',
@@ -83,7 +97,6 @@ const columns: ColumnDef<any>[] = [
         checked: selectedFile.value === row.original.Key,
         'onUpdate:checked': (checked: boolean) => {
           selectedFile.value = checked ? row.original.Key : null
-          console.log("Fichier sélectionné :", selectedFile.value)
         },
         'aria-label': 'Select row',
       }),
@@ -91,13 +104,13 @@ const columns: ColumnDef<any>[] = [
     enableHiding: false,
   },
   {
-    accessorFn: (file) => extractFilename(file.Key),
+    accessorFn: (file) => file.Key.split('/').pop(),
     id: 'filename',
     header: 'Nom du fichier',
     cell: ({ getValue }) => getValue(),
   },
   {
-    accessorFn: (file) => formatDate(file.LastModified),
+    accessorFn: (file) => format(new Date(file.LastModified), 'yyyy-MM-dd HH:mm:ss'),
     id: 'lastModified',
     header: 'Dernière modification',
     cell: ({ getValue }) => getValue(),
@@ -108,7 +121,37 @@ const columns: ColumnDef<any>[] = [
     header: 'Taille',
     cell: ({ getValue }) => getValue(),
   },
+  ...(props.download
+    ? [{
+        id: 'download',
+        header: 'Téléchargement',
+        cell: ({ row }) => {
+          const fileKey = row.original.Key;
+          return h(InteractiveHoverButton, {
+            text: 'Télécharger',
+            class: 'w-48',
+            onClick: () => downloadDecryptedFile(fileKey)
+          }, () => [
+            downloadingFile.value === fileKey
+              ? h(Loader2, { class: "w-4 h-4 animate-spin mr-2" }) // Icône de chargement
+              : null,
+            "Télécharger"
+          ]);
+        }
+      }]
+    : [])
 ]
+
+// **Fonction pour formater la taille**
+function formatSize(size: number) {
+  if (size >= 1024 * 1024) {
+    return `${(size / (1024 * 1024)).toFixed(2)} Mo`;
+  } else if (size >= 1024) {
+    return `${(size / 1024).toFixed(2)} Ko`;
+  }
+  return `${size} octets`;
+}
+
 </script>
 
 <template>
