@@ -2,14 +2,13 @@
 import { ref, onMounted } from 'vue'
 import { useNuxtApp } from '#app'
 
-// State pour stocker la donnée de l'API
+
 const backupData = ref<{ name: string; time: string } | null>(null)
 const loading = ref(false)
 const error = ref<string | null>(null)
 
 const { $api } = useNuxtApp()
 
-// Fonction pour charger les données de l'API
 async function fetchNextBackup() {
   try {
     loading.value = true
@@ -25,7 +24,6 @@ async function fetchNextBackup() {
   }
 }
 
-// Charger les données au montage du composant
 onMounted(() => {
   fetchNextBackup()
 })

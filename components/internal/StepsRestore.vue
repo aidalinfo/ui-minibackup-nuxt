@@ -18,10 +18,9 @@ import { h, ref } from 'vue'
 import * as z from 'zod'
 import { useNuxtApp } from '#app'
 
-// Accès à l'API via useNuxtApp
 const { $api } = useNuxtApp()
 
-// Récupération du paramètre "name" depuis l'URL
+
 const route = useRoute()
 const backupName = route.params.name as string
 

@@ -11,7 +11,6 @@ interface Backup {
   Schedule: { Standard: string }
 }
 
-// 1. Données réactives
 const backups = ref<Backup[]>([])
 const loading = ref(false)
 
@@ -19,45 +18,8 @@ defineProps<{
   columns: ColumnDef<any>[],
   pagination: boolean
 }>()
-// 2. Colonnes
-// const columns: ColumnDef<Backup>[] = [
-//   {
-//     accessorKey: 'name',
-//     header: 'Nom',
-//   },
-//   {
-//     accessorKey: 'Type',
-//     header: 'Type',
-//   },
-//   {
-//     accessorFn: (row) => row.Path.S3,
-//     id: 's3',
-//     header: 'Stockage S3',
-//     cell: ({ getValue }) => getValue(),
-//   },
-//   {
-//     accessorFn: (row) => row.Schedule.Standard,
-//     id: 'cron',
-//     header: () => h(Button, {
-//       variant: 'ghost'
-//     }, () => ['Cron Standard', h(ArrowUpDown, { class: 'ml-2 h-4 w-4' })]),
-//     cell: ({ getValue }) => getValue(),
-//   },
-//   {
-//   id: 'actions',
-//   enableHiding: false,
-//   cell: ({ row }) => {
-//     const backup = row.original
-//     return h(InteractiveHoverButton, {
-//       class: 'w-32',           // Largeur si texte long, par ex.
-//       text: 'Restaurer',       // Le texte à afficher
-//       onClick: () => restoreBackup(backup) // Au clic, on déclenche la restauration
-//     })
-//   },
-// },
-// ]
 
-// 3. Fetcher les données via ton plugin axios
+
 const { $api } = useNuxtApp()
 
 async function loadData() {

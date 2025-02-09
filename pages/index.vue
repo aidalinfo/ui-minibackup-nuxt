@@ -82,7 +82,6 @@ const columns: ColumnDef<Backup>[] = [
           <IDataTable :columns="columns" :pagination="false"/>
         </CardContent>
 
-        <!-- Le composant BorderBeam appliqué en superposition -->
         <BorderBeam :size="250" :duration="12" :delay="0" :border-width="2" colorFrom="#ffaa40" colorTo="#9c40ff" />
       </Card>
       <div>

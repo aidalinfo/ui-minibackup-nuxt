@@ -45,9 +45,9 @@ const columns: ColumnDef<Backup>[] = [
   cell: ({ row }) => {
     const backup = row.original
     return h(InteractiveHoverButton, {
-      class: 'w-32',           // Largeur si texte long, par ex.
-      text: 'Détails',       // Le texte à afficher
-      onClick: () => details(backup) // Au clic, on déclenche la restauration
+      class: 'w-32',          
+      text: 'Détails',      
+      onClick: () => details(backup)
     })
   },
 },
@@ -76,7 +76,6 @@ const columns: ColumnDef<Backup>[] = [
           <IDataTable :columns="columns" :pagination="true"/>
         </CardContent>
 
-        <!-- Le composant BorderBeam appliqué en superposition -->
         <BorderBeam :size="250" :duration="12" :delay="0" :border-width="2" colorFrom="#ffaa40" colorTo="#9c40ff" />
       </Card>
         </div>
