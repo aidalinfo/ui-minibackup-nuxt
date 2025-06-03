@@ -67,7 +67,7 @@ const columns: ColumnDef<Backup>[] = [
 
       <RStorageEnable/>
     </div>
-    <div class="grid gap-4 md:gap-8 lg:grid-cols-2 xl:grid-cols-3">
+    <div class="grid gap-4 md:gap-8">
       <Card class="relative overflow-hidden rounded-lg xl:col-span-2">
         <CardHeader class="flex flex-row items-center">
           <div class="grid gap-2">
@@ -85,7 +85,6 @@ const columns: ColumnDef<Backup>[] = [
         <BorderBeam :size="250" :duration="12" :delay="0" :border-width="2" colorFrom="#ffaa40" colorTo="#9c40ff" />
       </Card>
       <div>
-      <LastBackups />
     </div>
     </div>
   </main>
