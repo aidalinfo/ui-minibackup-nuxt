@@ -6,10 +6,11 @@ import { ChevronDown, ArrowUpDown } from 'lucide-vue-next'
 import InteractiveHoverButton from '@/components/internal/InteractiveHoverButton.vue'
 import { ref, onMounted } from 'vue'
 import { useNuxtApp } from '#app'
-import { toast } from 'vue-sonner' 
+import { useToast } from '@/components/ui/toast/use-toast'
 
 const router = useRouter()
 const { $api } = useNuxtApp()
+const { toast } = useToast()
 
 interface Backup {
   name: string
@@ -34,7 +35,11 @@ async function fetchBackups() {
       }))
     }
   } catch (err) {
-    toast.error('Erreur lors du chargement des sauvegardes')
+    toast({
+      title: 'Erreur',
+      description: 'Erreur lors du chargement des sauvegardes',
+      variant: 'destructive',
+    })
   } finally {
     loadingBackups.value = false
   }
@@ -44,9 +49,17 @@ async function runBackup(name: string) {
   runningBackup.value = name
   try {
     await $api.post(`/api/backup/${encodeURIComponent(name)}/run`)
-    toast.success(`Sauvegarde "${name}" lancée avec succès !`)
+    toast({
+      title: 'Succès',
+      description: `Sauvegarde "${name}" lancée avec succès !`,
+      variant: 'default',
+    })
   } catch (err) {
-    toast.error(`Erreur lors du lancement de la sauvegarde "${name}"`)
+    toast({
+      title: 'Erreur',
+      description: `Erreur lors du lancement de la sauvegarde "${name}"`,
+      variant: 'destructive',
+    })
   } finally {
     runningBackup.value = null
     showDropdown.value = false
