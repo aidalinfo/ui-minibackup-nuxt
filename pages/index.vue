@@ -4,7 +4,13 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Button } from '@/components/ui/button'
 import { ChevronDown, ArrowUpDown } from 'lucide-vue-next'
 import InteractiveHoverButton from '@/components/internal/InteractiveHoverButton.vue'
+import { ref, onMounted } from 'vue'
+import { useNuxtApp } from '#app'
+import { toast } from 'vue-sonner' 
+
 const router = useRouter()
+const { $api } = useNuxtApp()
+
 interface Backup {
   name: string
   type: string
@@ -12,10 +18,49 @@ interface Backup {
   Schedule: { Standard: string }
 }
 
+const backupsList = ref<Backup[]>([])
+const loadingBackups = ref(false)
+const showDropdown = ref(false)
+const runningBackup = ref<string | null>(null)
+
+async function fetchBackups() {
+  try {
+    loadingBackups.value = true
+    const response = await $api.get('/api/backups/all')
+    if (response.data && response.data.backup) {
+      backupsList.value = Object.keys(response.data.backup).map((key) => ({
+        name: key,
+        ...response.data.backup[key],
+      }))
+    }
+  } catch (err) {
+    toast.error('Erreur lors du chargement des sauvegardes')
+  } finally {
+    loadingBackups.value = false
+  }
+}
+
+async function runBackup(name: string) {
+  runningBackup.value = name
+  try {
+    await $api.post(`/api/backup/${encodeURIComponent(name)}/run`)
+    toast.success(`Sauvegarde "${name}" lancée avec succès !`)
+  } catch (err) {
+    toast.error(`Erreur lors du lancement de la sauvegarde "${name}"`)
+  } finally {
+    runningBackup.value = null
+    showDropdown.value = false
+  }
+}
+
+onMounted(() => {
+  fetchBackups()
+})
 
 async function restoreBackup(backup: Backup) {
   router.push(`/restore/${backup.name}`)
 }
+
 const columns: ColumnDef<Backup>[] = [
   {
     accessorKey: 'name',
@@ -40,17 +85,26 @@ const columns: ColumnDef<Backup>[] = [
     cell: ({ getValue }) => getValue(),
   },
   {
-  id: 'actions',
-  enableHiding: false,
-  cell: ({ row }) => {
-    const backup = row.original
-    return h(InteractiveHoverButton, {
-      class: 'w-32',           // Largeur si texte long, par ex.
-      text: 'Restaurer',       // Le texte à afficher
-      onClick: () => restoreBackup(backup) // Au clic, on déclenche la restauration
-    })
+    id: 'actions',
+    enableHiding: false,
+    cell: ({ row }) => {
+      const backup = row.original
+      return h('div', { class: 'flex gap-2' }, [
+        h(InteractiveHoverButton, {
+          class: 'w-32',
+          text: 'Restaurer',
+          onClick: () => restoreBackup(backup)
+        }),
+        h(InteractiveHoverButton, {
+          class: 'w-40',
+          text: runningBackup.value === backup.name ? 'En cours...' : 'Sauvegarder',
+          loading: runningBackup.value === backup.name,
+          disabled: runningBackup.value === backup.name,
+          onClick: () => runBackup(backup.name)
+        })
+      ])
+    },
   },
-},
 ]
 </script>
 <template>
@@ -69,7 +123,7 @@ const columns: ColumnDef<Backup>[] = [
     </div>
     <div class="grid gap-4 md:gap-8">
       <Card class="relative overflow-hidden rounded-lg xl:col-span-2">
-        <CardHeader class="flex flex-row items-center">
+        <CardHeader class="flex flex-row items-center justify-between">
           <div class="grid gap-2">
             <CardTitle>Sauvegardes</CardTitle>
             <CardDescription>
