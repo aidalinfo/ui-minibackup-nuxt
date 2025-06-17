@@ -1,0 +1,37 @@
+import { defineNuxtPlugin, useRuntimeConfig } from "#app";
+import axios from "axios";
+// import { useToast } from "@/components/ui/toast/use-toast";
+
+export default defineNuxtPlugin((nuxtApp) => {
+  const config = useRuntimeConfig();
+  const apiBase = config.public.apiUrl || "http://localhost:8080";
+
+  const api = axios.create({
+    baseURL: apiBase,
+  });
+
+  api.interceptors.response.use(
+    (response) => response,
+    (error) => {
+      const errorMessage =
+        error.response?.data?.error || error.error || "Une erreur est survenue";
+      console.error("API Error:", errorMessage);
+      // if (process) {
+      // const { toast } = useToast();
+      // toast({
+      //   title: "Erreur",
+      //   description: errorMessage,
+      //   variant: "destructive",
+      // });
+      // // }
+
+      return Promise.reject(error);
+    }
+  );
+
+  return {
+    provide: {
+      api,
+    },
+  };
+});

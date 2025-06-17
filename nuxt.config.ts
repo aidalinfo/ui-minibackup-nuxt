@@ -4,10 +4,30 @@ import tailwindcss from "@tailwindcss/vite";
 export default defineNuxtConfig({
   compatibilityDate: "2025-05-15",
   devtools: { enabled: true },
-  modules: ["@nuxt/icon", "shadcn-nuxt"],
+  ssr: false,
+  modules: ["@nuxt/icon", "shadcn-nuxt", "@nuxtjs/tailwindcss"],
   css: ["~/assets/css/tailwind.css"],
   vite: {
     plugins: [tailwindcss()],
+  },
+  runtimeConfig: {
+    public: {
+      apiUrl: process.env.API_URL || "http://localhost:8086",
+    },
+  },
+  plugins: ["~/plugins/api"],
+  components: {
+    dirs: [
+      // On peut lister plusieurs répertoires
+      {
+        path: "~/components/ui", // où shadcn place ses composants
+        extensions: ["vue", "ts"],
+      },
+      {
+        path: "~/components/internal", // ton dossier perso
+        extensions: ["vue", "ts"],
+      },
+    ],
   },
   shadcn: {
     /**
