@@ -19,11 +19,13 @@
           v-slot="{ meta, values, validate }"
           as=""
           keep-values
-          :validation-schema="toTypedSchema(formSchema[stepIndex - 2])">
+          :validation-schema="formSchema[stepIndex - 2] ? toTypedSchema(formSchema[stepIndex - 2]) : undefined"
+        >
           <Stepper
             v-slot="{ isNextDisabled, isPrevDisabled, nextStep, prevStep }"
             v-model="stepIndex"
-            class="block w-full">
+            class="block w-full"
+          >
             <form
               @submit="
                 (e) => {
@@ -33,17 +35,20 @@
                     onSubmit(values);
                   }
                 }
-              ">
+              "
+            >
               <div class="flex w-full flex-start gap-2">
                 <StepperItem
                   v-for="step in steps"
                   :key="step.step"
                   v-slot="{ state }"
                   class="relative flex w-full flex-col items-center justify-center"
-                  :step="step.step">
+                  :step="step.step"
+                >
                   <StepperSeparator
                     v-if="step.step !== steps[steps.length - 1].step"
-                    class="absolute left-[calc(50%+20px)] right-[calc(-50%+10px)] top-5 block h-0.5 shrink-0 rounded-full bg-muted group-data-[state=completed]:bg-primary" />
+                    class="absolute left-[calc(50%+20px)] right-[calc(-50%+10px)] top-5 block h-0.5 shrink-0 rounded-full bg-muted group-data-[state=completed]:bg-primary"
+                  />
 
                   <StepperTrigger as-child>
                     <Button
@@ -58,10 +63,12 @@
                         state === 'active' &&
                           'ring-2 ring-ring ring-offset-2 ring-offset-background',
                       ]"
-                      :disabled="state !== 'completed' && !meta.valid">
+                      :disabled="state !== 'completed' && !meta.valid"
+                    >
                       <Check
                         v-if="state === 'completed'"
-                        class="size-5" />
+                        class="size-5"
+                      />
                       <Circle v-if="state === 'active'" />
                       <Dot v-if="state === 'inactive'" />
                     </Button>
@@ -70,12 +77,14 @@
                   <div class="mt-5 flex flex-col items-center text-center">
                     <StepperTitle
                       :class="[state === 'active' && 'text-primary']"
-                      class="text-sm font-semibold transition lg:text-base">
+                      class="text-sm font-semibold transition lg:text-base"
+                    >
                       {{ step.title }}
                     </StepperTitle>
                     <StepperDescription
                       :class="[state === 'active' && 'text-primary']"
-                      class="sr-only text-xs text-muted-foreground transition md:not-sr-only lg:text-sm">
+                      class="sr-only text-xs text-muted-foreground transition md:not-sr-only lg:text-sm"
+                    >
                       {{ step.description }}
                     </StepperDescription>
                   </div>
@@ -158,7 +167,8 @@
                   :disabled="isPrevDisabled"
                   variant="outline"
                   size="sm"
-                  @click="prevStep()">
+                  @click="prevStep()"
+                >
                   Back
                 </Button>
                 <div class="flex items-center gap-3">
@@ -167,13 +177,15 @@
                     :type="meta.valid ? 'button' : 'submit'"
                     :disabled="isNextDisabled"
                     size="sm"
-                    @click="meta.valid && nextStep()">
+                    @click="meta.valid && nextStep()"
+                  >
                     Next
                   </Button>
                   <Button
                     v-if="stepIndex === 3"
                     size="sm"
-                    type="submit">
+                    type="submit"
+                  >
                     Restaurer
                   </Button>
                 </div>

@@ -42,7 +42,7 @@ async function listLastBackup() {
   try {
     loading.value = true
     const response = await $api.get(`/api/backups/${backupName}/files`)
-    if (response.status === 200) {
+    if (response.status === 200 && Array.isArray(response.data.files)) {
       let files = response.data.files
 
       // Trier par date décroissante
@@ -50,9 +50,11 @@ async function listLastBackup() {
 
       filesListed.value = files
     } else {
+      filesListed.value = []
       console.error(`Erreur lors de la récupération des fichiers pour ${backupName}`)
     }
   } catch (error) {
+    filesListed.value = []
     console.error(`Erreur lors de la récupération des fichiers pour ${backupName}`, error)
   } finally {
     loading.value = false
